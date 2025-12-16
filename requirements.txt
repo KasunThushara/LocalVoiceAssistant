@@ -1,0 +1,39 @@
+# Flask web framework
+Flask==3.0.0
+
+# Speech Recognition
+SpeechRecognition==3.10.0
+pyaudio==0.2.14
+
+# Audio playback
+simpleaudio==1.0.4
+
+# LLM Integration
+ollama==0.1.6
+
+# Text-to-Speech (Piper)
+piper-tts==1.2.0
+
+# RAG Dependencies
+langchain==0.1.0
+langchain-community==0.0.13
+sentence-transformers==2.2.2
+faiss-cpu==1.7.4
+
+# Vector embeddings (alternative to sentence-transformers)
+# Use this for offline/local embeddings
+transformers==4.36.0
+torch==2.1.2
+
+# USB control (for ReSpeaker hardware)
+pyusb==1.2.1
+libusb-package==1.0.26
+
+# Utilities
+requests==2.31.0
+numpy==1.24.3
+
+# Optional: GPU acceleration for embeddings
+# Uncomment if you have NVIDIA GPU
+# faiss-gpu==1.7.4
+# torch==2.1.2+cu118
