@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🛒 Smart Voice Retail Solutions</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(90deg, #007bff, #00a8ff);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    #chatContainer {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      background: #ffffff;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 0.8rem 1rem;
+      border-radius: 15px;
+      font-size: 1rem;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .user {
+      align-self: flex-start;
+      background: #3498db;
+      color: white;
+      border-bottom-left-radius: 0;
+    }
+
+    .assistant {
+      align-self: flex-end;
+      background: #ecf0f1;
+      color: #2c3e50;
+      border-bottom-right-radius: 0;
+    }
+
+    footer {
+      background: #fff;
+      padding: 0.8rem;
+      border-top: 1px solid #ccc;
+      text-align: center;
+    }
+
+    #status { 
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    #controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      align-items: center;
+    }
+
+    #stopBtn {
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #stopBtn.active {
+      background: #e74c3c;
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+
+    #stopBtn.active:hover {
+      background: #c0392b;
+      transform: scale(1.05);
+    }
+
+    #stopBtn.inactive {
+      background: #95a5a6;
+      color: #ecf0f1;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+      }
+    }
+
+    #debug { 
+      font-size: 0.8rem; 
+      color: #7f8c8d;
+      margin-top: 0.5rem;
+    }
+
+    #ttsAudio {
+      display: none !important;
+      visibility: hidden;
+      height: 0;
+      width: 0;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: blink 1s infinite;
+    }
+
+    .status-indicator.playing {
+      background: #e74c3c;
+    }
+
+    .status-indicator.listening {
+      background: #2ecc71;
+    }
+
+    .status-indicator.processing {
+      background: #f39c12;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>🛒 Smart Voice Retail Solutions</header>
+
+  <div id="chatContainer">
+    <div class="assistant message">👋 Hi! Say "Hi Speaker" to talk with me. During playback, say "Stop..Stop"/"No No.." or click the button below to interrupt.</div>
+  </div>
+
+  <footer>
+    <p>
+      <span id="statusIndicator" class="status-indicator listening"></span>
+      Status: <span id="status">Idle</span>
+    </p>
+    
+    <div id="controls">
+      <button id="stopBtn" class="inactive" disabled>
+        🛑 Stop Playback
+      </button>
+    </div>
+    
+    <p id="debug"></p>
+    <audio id="ttsAudio" autoplay></audio>
+  </footer>
+
+  <script>
+    let lastCorrected = "";  // Only track corrected text
+    let lastLLM = "";
+    let lastTTS = false;
+    let isPlaying = false;
+
+    const stopBtn = document.getElementById("stopBtn");
+    const statusIndicator = document.getElementById("statusIndicator");
+
+    function addMessage(text, sender) {
+      const div = document.createElement("div");
+      div.className = sender + " message";
+      div.textContent = text;
+
+      document.getElementById("chatContainer").appendChild(div);
+
+      setTimeout(() => {
+        const container = document.getElementById("chatContainer");
+        container.scrollTop = container.scrollHeight;
+      }, 50);
+    }
+
+    function updateStatusIndicator(status) {
+      statusIndicator.className = "status-indicator";
+      
+      if (status.includes("Playing") || status.includes("🔊")) {
+        statusIndicator.classList.add("playing");
+      } else if (status.includes("Listening") || status.includes("🎧")) {
+        statusIndicator.classList.add("listening");
+      } else {
+        statusIndicator.classList.add("processing");
+      }
+    }
+
+    function enableStopButton() {
+      stopBtn.disabled = false;
+      stopBtn.className = "active";
+      isPlaying = true;
+    }
+
+    function disableStopButton() {
+      stopBtn.disabled = true;
+      stopBtn.className = "inactive";
+      isPlaying = false;
+    }
+
+    // Manual stop button click
+    stopBtn.addEventListener("click", function() {
+      if (isPlaying) {
+        console.log("🛑 Manual stop requested");
+        
+        // Stop audio immediately
+        const audio = document.getElementById("ttsAudio");
+        audio.pause();
+        audio.currentTime = 0;
+        
+        // Notify backend
+        fetch("/stop_tts", {method: "POST"})
+          .then(() => {
+            console.log("✓ Stop signal sent to backend");
+            disableStopButton();
+          })
+          .catch(err => console.log("Stop request failed:", err));
+      }
+    });
+
+    function updateUI() {
+      fetch("/status")
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("status").textContent = data.status;
+          updateStatusIndicator(data.status);
+          
+          document.getElementById("debug").textContent =
+            `Raw STT: ${data.stt_text.length}ch | Corrected: ${data.stt_corrected.length}ch | LLM: ${data.llm_response.length}ch | TTS=${data.tts_ready}`;
+
+          // USER MESSAGE: ONLY display corrected text (ignore stt_text completely)
+          if (data.stt_corrected && data.stt_corrected !== lastCorrected) {
+            // Check if correction was applied
+            let correctionApplied = (data.stt_text !== data.stt_corrected);
+            let prefix = correctionApplied ? "🎤✓ " : "🎤 ";
+            
+            addMessage(prefix + data.stt_corrected, "user");
+            
+            // Debug log
+            if (correctionApplied) {
+              console.log(`[CORRECTED] "${data.stt_text}" → "${data.stt_corrected}"`);
+            } else {
+              console.log(`[NO CORRECTION] "${data.stt_corrected}"`);
+            }
+            
+            lastCorrected = data.stt_corrected;
+          }
+
+          // ASSISTANT RESPONSE
+          if (data.llm_response && data.llm_response !== lastLLM) {
+            addMessage(data.llm_response, "assistant");
+            lastLLM = data.llm_response;
+          }
+
+          // Check for stop request
+          if (data.stop_requested) {
+            console.log("🛑 Stop requested detected!");
+            const audio = document.getElementById("ttsAudio");
+            
+            if (isPlaying) {
+              console.log("🛑 Stopping audio playback NOW");
+              audio.pause();
+              audio.currentTime = 0;
+              audio.src = "";
+              disableStopButton();
+              
+              fetch("/reset_after_tts", {method: "POST"})
+                .then(() => console.log("✓ Reset to wake word mode"))
+                .catch(err => console.log("Reset failed:", err));
+            }
+            
+            lastTTS = data.tts_ready;
+            return;
+          }
+
+          // TTS playback
+          if (data.tts_ready && !lastTTS) {
+            let audio = document.getElementById("ttsAudio");
+            audio.src = "/static/output.wav?t=" + Date.now();
+            
+            audio.onplay = function() {
+              enableStopButton();
+              console.log("▶️ Playback started");
+            };
+            
+            audio.onended = function() {
+              disableStopButton();
+              console.log("✓ Playback finished");
+              
+              fetch("/reset_after_tts", {method: "POST"})
+                .then(() => console.log("✓ Listening reset"))
+                .catch(err => console.log("Reset failed:", err));
+            };
+            
+            audio.onerror = function() {
+              disableStopButton();
+              console.log("⚠️ Audio error");
+            };
+            
+            audio.play().catch(err => {
+              console.log("Autoplay blocked:", err);
+              disableStopButton();
+            });
+          }
+
+          lastTTS = data.tts_ready;
+        })
+        .catch(err => {
+          console.log("Status fetch error:", err);
+        });
+    }
+
+    // Update every 200ms
+    setInterval(updateUI, 200);
+    updateUI();
+  </script>
+
+</body>
+</html>
