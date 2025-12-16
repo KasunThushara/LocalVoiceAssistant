@@ -1,0 +1,18 @@
+Q: Introduce Seeed Studio / What is Seeed Studio / What does Seeed Studio do / Tell me about Seeed Studio / Who is Seeed Studio
+A: Seeed Studio is a leading open hardware company since 2008, empowering over half a million users to build real-world digital solutions. Our product portfolio supports key AI scenarios, from sensor networks to edge computing. We offer industrial-grade modules and end-to-end Fusion services to help innovators prototype, produce, and promote their ideas.
+
+Q: Introduce yourself / Introduce this demo / What does this demo do / Tell me about this demo / What is this demo
+A: This demo showcases an intelligent real-time Q&A platform based on reSpeaker. It uses a 4-microphone array to detect wake words and record 5-second queries for speech-to-text conversion. Queries are processed by locally deployed Llama 3 with RAG architecture, then converted to speech through local TTS engine. The solution works on NVIDIA Jetson, x86, and Linux systems for secure automated human-computer interaction.
+
+Q: What are Seeed Studio Voice Solutions / Tell me about voice solutions / What voice products does Seeed offer / Voice solutions / Seeed voice
+A: Seeed Studio's voice solutions include the reSpeaker series with 2-mic and 4-mic arrays in linear and circular configurations for clear audio capture. We use AI algorithms like AEC, DoA, beamforming, and echo cancellation to improve clarity. Our advanced sound event detection identifies specific sounds like gunshots, breaking glass, and baby cries for robust voice interaction and audio monitoring.
+
+Q: What are Seeed Studio Vision Solutions / Tell me about vision solutions / What vision products does Seeed offer / Vision solutions / Seeed vision / AI cameras
+A: Seeed provides AI cameras from 1-4 TOPS for efficient inference to 275 TOPS edge computers for high-performance scenarios. SenseCraft AI platform offers 300+ pre-trained models for no-code deployment. Our solutions support Raspberry Pi and NVIDIA Jetson with open-source collaboration, enabling vision AI for retail, security, agriculture, and robotics from prototyping to production.
+
+Q: What are Seeed Studio Sensor Network Solutions / Tell me about sensor solutions / Sensor networks / IoT sensors / Seeed sensors
+A: Seeed offers comprehensive sensor network solutions from individual modules to complete devices. Our products enable rapid IoT deployment across asset tracking, smart buildings, smart cities, and agriculture with efficient data collection and transmission.
+
+Q: What are Seeed Studio Robotics Solutions / Tell me about robotics / Robot products / Seeed robotics / Robotics components
+A: Seeed Studio provides open-source robot arm kits, mobile platforms, joint actuators, servos, GMSL cameras, depth cameras, LiDARs, and IMUs. We partner with NVIDIA Isaac Lab and Hugging Face LeRobot ecosystems. Our resources cover data collection, model training, and edge deployment for efficient robotics innovation.
+
